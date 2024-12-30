@@ -9,8 +9,9 @@ import time
 @st.cache_data  # Updated caching method
 def load_data():
     try:
-        file_path = 'datasets\IMDB-Movie-Dataset(2023-1951).csv'  # Update with the correct file path
+        file_path = 'datasets/IMDB-Movie-Dataset(2023-1951).csv'  # Update with the correct file path
         movies_df = pd.read_csv(file_path)
+        movies_df = movies_df[~movies_df['movie_name'].str.startswith('Untitled')]  # Remove movies starting with "Untitled"
         movies_df['combined_features'] = movies_df['genre'] + ' ' + movies_df['director'] + ' ' + movies_df['cast']
         return movies_df
     except Exception as e:
@@ -54,7 +55,7 @@ def get_content_based_recommendations(title, top_n=5):
         sim_scores = list(enumerate(cosine_sim[idx]))
         sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1:top_n+1]
         movie_indices = [i[0] for i in sim_scores]
-        return movies_df['movie_name'].iloc[movie_indices].values.tolist()
+        return movies_df['movie_name'].iloc[movie_indices].tolist()
     except Exception as e:
         st.error(f"Error fetching content-based recommendations: {e}")
         return []
@@ -66,10 +67,15 @@ def get_actor_based_recommendations(title, top_n=5):
         actor_sim_scores = list(enumerate(actor_cosine_sim[idx]))
         actor_sim_scores = sorted(actor_sim_scores, key=lambda x: x[1], reverse=True)[1:top_n+1]
         movie_indices = [i[0] for i in actor_sim_scores]
-        return movies_df['movie_name'].iloc[movie_indices].values.tolist()
+        return movies_df['movie_name'].iloc[movie_indices].tolist()
     except Exception as e:
         st.error(f"Error fetching actor-based recommendations: {e}")
         return []
+
+# Filter movies by genre
+def filter_movies_by_genre(df, genre):
+    genre_filtered_df = df[df['genre'].str.contains(genre, case=False, na=False)]
+    return genre_filtered_df
 
 # Streamlit frontend layout with enhanced UI
 def app_layout():
@@ -91,37 +97,71 @@ def app_layout():
         </style>
         """, unsafe_allow_html=True)
 
-    st.title("🎬 BollyChoice")
+    st.title("🎬 BollyChoice - Bollywood Movie Recommender")
     st.write(
-        "This app recommends Bollywood movies based on both **actor similarity** and **movie content features**. "
-        "Select a movie to see similar recommendations!"
+        """
+        Welcome to BollyChoice, your personalized Bollywood movie recommender!
+        Whether you're looking for films similar to your favorites or discovering new ones based on the same actors or content,
+        BollyChoice has you covered. Select a genre, choose a movie, and get tailored recommendations based on actor similarity or content features.
+        With an easy-to-use interface and fast recommendations, explore the best of Bollywood like never before!
+        """
     )
 
-    # User input: movie title
-    movie_list = movies_df['movie_name'].tolist()
-    selected_movie = st.selectbox("Choose a movie", movie_list)
+    # Genre-based filtering section
+    st.subheader("📂 Explore Movies by Genre")
+    unique_genres = set(genre.strip() for sublist in movies_df['genre'].dropna().str.split(',').tolist() for genre in sublist)
+    selected_genre = st.selectbox("Select a genre to explore movies", sorted(unique_genres))
 
-    # Show recommendations on button click
+    # Initialize session_state for genre and movie selection
+    if 'filtered_movie_list' not in st.session_state:
+        st.session_state['filtered_movie_list'] = movies_df['movie_name'].tolist()
+
+    # Filter movies by genre and update the movie list
+    if st.button("Filter by Genre"):
+        with st.spinner(f"Filtering movies in '{selected_genre}' genre..."):
+            time.sleep(1)  # Simulate delay
+            genre_filtered_df = filter_movies_by_genre(movies_df, selected_genre)
+
+        if not genre_filtered_df.empty:
+            st.session_state['filtered_movie_list'] = genre_filtered_df['movie_name'].tolist()
+
+        else:
+            st.warning("No movies found for the selected genre.")
+
+    # Show the movie dropdown with filtered movies
+    selected_movie = st.selectbox("Choose a movie", st.session_state['filtered_movie_list'])
+
+    # Show recommendations based on the selected movie
     if st.button("Get Recommendations"):
         with st.spinner("Loading recommendations..."):  # Add a loading spinner
-            time.sleep(5)  # Simulate a 2-second delay
+            time.sleep(2)  # Simulate a 2-second delay
             actor_recommendations = get_actor_based_recommendations(selected_movie, top_n=5)
             content_recommendations = get_content_based_recommendations(selected_movie, top_n=5)
 
-        if actor_recommendations or content_recommendations:
+        # Display selected movie description and actors
+        selected_movie_info = movies_df[movies_df['movie_name'] == selected_movie].iloc[0]
+        st.subheader(f"**Selected Movie: {selected_movie_info['movie_name']}**")
+        st.write(f"**Genre:** {selected_movie_info['genre']}")
+        st.write(f"**Director:** {selected_movie_info['director']}")
+        st.write(f"**Cast:** {selected_movie_info['cast']}")
+        st.write(f"**Description:** {selected_movie_info.get('overview', 'No description available.')}")
+
+        if not actor_recommendations and not content_recommendations:
+            st.warning("No recommendations available for this movie.")
+        else:
             col1, col2 = st.columns(2)  # Create two columns
 
+            # Actor-based recommendations
             with col1:
-                st.subheader(f"Top 5 Actor-based Recommendations for {selected_movie} are:")
-                for idx, movie in enumerate(actor_recommendations):
-                    st.write(f"{idx+1}. {movie}")
+                st.subheader(f"Top 5 Actor-based Recommendations for {selected_movie}:")
+                for movie in actor_recommendations:
+                    st.write(f"**{movie}**")
 
+            # Content-based recommendations
             with col2:
-                st.subheader(f"Top 5 Content-based Recommendations for {selected_movie} are:")
-                for idx, movie in enumerate(content_recommendations):
-                    st.write(f"{idx+1}. {movie}")
-        else:
-            st.warning("No recommendations available for this movie.")
+                st.subheader(f"Top 5 Content-based Recommendations for {selected_movie}:")
+                for movie in content_recommendations:
+                    st.write(f"**{movie}**")
 
 if __name__ == '__main__':
     app_layout()
