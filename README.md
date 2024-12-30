@@ -16,14 +16,14 @@
 
 ## Overview
 
-BollyChoice is a personalized Bollywood movie recommender that uses content-based filtering and actor similarity to suggest movies based on user preferences. Built with Python and Streamlit, it leverages the IMDB movie dataset to provide tailored recommendations.
+BollyChoice is a personalized Bollywood movie recommendation system that leverages content-based filtering and actor similarity to suggest movies based on user preferences. By using a comprehensive dataset of Bollywood movies, the app offers tailored recommendations, helping users discover new films based on their favorite genres, actors, or movie characteristics.
 
 ## Features
 
-*   Content-based filtering: Recommends movies based on genres, directors, and casts.
-*   Actor similarity: Recommends movies based on shared actors.
-*   Genre filtering: Allows users to filter movies by genre before getting recommendations.
-*   Interactive interface: Enables real-time recommendations and dynamic genre-based filtering.
+* Genre-based Filtering: Filter movies by genre and get recommendations accordingly.
+* Actor-based Recommendations: Get movie suggestions based on similar actors and cast.
+* Content-based Recommendations: Discover movies similar to your favorites based on their content (e.g., genre, director, and cast).
+* Intuitive UI: Easy-to-use interface built with Streamlit for a seamless user experience.
 
 ## Requirements
 
@@ -53,7 +53,7 @@ BollyChoice is a personalized Bollywood movie recommender that uses content-base
 
 ## Access the Application
 
-You can access the application directly by visiting [https://content-based-recommender.streamlit.app/](https://content-based-recommender.streamlit.app/).
+You can access the application directly by visiting [BollyChoice](https://bollychoice.streamlit.app/).
 
 ## Dataset
 
