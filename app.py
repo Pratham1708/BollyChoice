@@ -9,7 +9,7 @@ import time
 @st.cache_data  # Updated caching method
 def load_data():
     try:
-        file_path = 'datasets\IMDB-Movie-Dataset(2023-1951).csv'  # Update with the correct file path
+        file_path = 'datasets/IMDB-Movie-Dataset(2023-1951).csv'  # Update with the correct file path
         movies_df = pd.read_csv(file_path)
         movies_df['combined_features'] = movies_df['genre'] + ' ' + movies_df['director'] + ' ' + movies_df['cast']
         return movies_df
