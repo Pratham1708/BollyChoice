@@ -91,7 +91,7 @@ def app_layout():
         </style>
         """, unsafe_allow_html=True)
 
-    st.title("🎬 Bollywood Movie Recommendation System")
+    st.title("🎬 BollyChoice")
     st.write(
         "This app recommends Bollywood movies based on both **actor similarity** and **movie content features**. "
         "Select a movie to see similar recommendations!"
